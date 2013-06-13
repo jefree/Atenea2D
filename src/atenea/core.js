@@ -1,10 +1,12 @@
 (function(){
 
-	Atenea = {
+	var Atenea = function(){
 
-		init : function(w, h, domParent){
+        var self = this;
 
-			this.canvas.init(w, h, domParent);
+		self.init = function(w, h, domParent){
+
+			self.canvas.init(w, h, domParent);
 
             // select best function for animFrame
 
@@ -16,9 +18,9 @@
                             window.setTimeout(callback, 1000 / 60);
                         };
             })();
-		},
+		}
 
-        register: function(id, model){
+        self.register = function(id, model){
 
             newModel = {}
 
@@ -26,10 +28,10 @@
                 newModel[f] = model[f];
             }
 
-            this.models[id] = newModel;
-        },
+            self.models[id] = newModel;
+        }
 
-        parse : function(type, object){
+        self.parse = function(type, object){
 
             if (typeof(type) == 'string'){
 
@@ -42,108 +44,111 @@
                 var models = type.split(/,\s|,/);
 
                 for (n in models){
-                    this.add(e, models[n]);
+                    self.add(e, models[n]);
                 }
 
                 return e;
             }
-        },
+        }
 
-        add : function(e, model){
+        self.add = function(e, model){
 
-            if(model in this.models){
+            if(model in self.models){
 
-                for(attr in this.models[model]){
+                for(attr in self.models[model]){
 
                     if (! (attr in e) ){
 
-                        e[attr] = this.models[model][attr];
+                        e[attr] = self.models[model][attr];
                     }
                 }
 
-                if("init" in this.models[model]){
-                    this.models[model].init.call(e);
+                if("init" in self.models[model]){
+                    self.models[model].init.call(e);
                 }
             }
-        },
+        }
 
-        scene : function(id, scene){
+        self.scene = function(id, scene){
 
             if (scene === undefined){
-                this.activeScene = this.scenes[id];
+                self.activeScene = self.scenes[id];
                 return;
             } 
 
-            this.scenes[id] = scene;
-        },
+            self.scenes[id] = scene;
+        }
 
-        start : function(id){
+        self.start = function(id){
 
-            this.activeScene = this.scenes[id];
+            self.activeScene = self.scenes[id];
             
-            this.animLoop();
-        },
+            self.animLoop();
+        }
 
-        draw : function(){
+        self.draw = function(){
 
-            entities = this.activeScene.entities;
+            entities = self.activeScene.entities;
 
             for (var i=0; i<entities.length; i++){
-                entities[i].draw(this.canvas.context);
+                entities[i].draw(self.canvas.context);
             }
-        },
+        }
 
-        update : function(){
+        self.update = function(){
             console.log('update');
-        },
+        }
 
-        animLoop : function(){
+        self.animLoop = function(){
 
-            requestAnimFrame(Atenea.animLoop);
-            Atenea.update();
-            Atenea.draw();
-        },
+            requestAnimFrame(self.animLoop);
+            self.update();
+            self.draw();
+        }
 
-		canvas : {
+		self.canvas = new (function(){
 
-			init : function(w, h, domParent){
+            var self = this;
 
-				this.domElement = document.createElement('canvas');
-				this.context = this.domElement.getContext('2d');
+			self.init = function(w, h, domParent){
 
-                this.domElement.width = w;
-                this.domElement.height = h;
+				self.domElement = document.createElement('canvas');
+				self.context = self.domElement.getContext('2d');
+
+                self.domElement.width = w;
+                self.domElement.height = h;
 
 				if(domParent !== undefined){
-					domParent.appendChild(this.domElement);
+					domParent.appendChild(self.domElement);
 				}else{
-					document.body.appendChild(this.domElement);
+					document.body.appendChild(self.domElement);
 				}
-			},
+			}
 
-			size : function(){
+			self.size = function(){
 
 				if(arguments.length == 2){
 
-					this.domElement.width = arguments[0];
-					this.domElement.height = arguments[1];
+					self.domElement.width = arguments[0];
+					self.domElement.height = arguments[1];
 
 				}
 				else if (arguments.length == 0){
 
 					return {
-						width:this.domElement.width, 
-						height:this.domElement.height
+						width:self.domElement.width, 
+						height:self.domElement.height
 					};
 				}
 			}
-		},
+		})();
 
-        activeScene : undefined,
-        pause : false,
+        self.activeScene = undefined;
 
-        scenes : {},
-        models : {}
+        self.scenes = {};
+        self.models = {};
 	}
+
+    window.Atenea = new Atenea();
 
 })();
