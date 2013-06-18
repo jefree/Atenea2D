@@ -99,22 +99,19 @@ var Atenea = function(){
     */
     self.parse = function(type, object){
 
-        if (typeof(type) == 'string'){
+        var e = {};
 
-            var e = {};
-
-            if(object !== undefined){
-                e = object;
-            }
-
-            var models = type.replace(/\s+/g, '').split(',');
-
-            for (n in models){
-                add(e, models[n]);
-            }
-
-            return e;
+        if(object !== undefined){
+            e = object;
         }
+
+        var models = type.replace(/\s+/g, '').split(',');
+
+        for (n in models){
+            add(e, models[n]);
+        }
+
+        return e;
     }
 
     /**
