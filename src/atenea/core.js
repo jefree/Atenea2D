@@ -1,6 +1,14 @@
 
 var Atenea = function(){
 
+
+    /*
+      Constantes relacionadas a expresiones regulares.
+    */
+
+    REXP_MODEL_ENTITY = /^[A-Z].*$/;
+    REXP_MODEL_SCENE = /^[a-z]+$/;
+
     /*
       Almacena la referencia this para este objeto, para asi asegurar
       que siempre se referencia al objeto en si mismo y no ha otra
@@ -54,20 +62,30 @@ var Atenea = function(){
 
     /**
       Registar un modelo para que este pueda ser usado posteriormente en
-      la creacion de objetos concretos.
+      la creacion de objetos concretos. @id determina si el modelo hace 
+      referencia a una Entidad o a Una Escena, las entidades deben tener un
+      id que Inicie con una letra mayuscula, mientras las escenas debe ir 
+      completamente en minuscula.
 
       - id: string con el id del modelo
       - model: object que representa el modelo
     */
     self.register = function(id, model){
 
-        newModel = {}
+        if(id.match(REXP_MODEL_ENTITY)){
+            
+            newModel = {}
 
-        for(f in model){
-            newModel[f] = model[f];
+            for(f in model){
+                newModel[f] = model[f];
+            }
+
+          models[id] = newModel;
         }
+        else if(id.match(REXP_MODEL_SCENE)){
 
-        models[id] = newModel;
+            scenes[id] = model;
+        }
     }
 
     /**
@@ -81,22 +99,19 @@ var Atenea = function(){
     */
     self.parse = function(type, object){
 
-        if (typeof(type) == 'string'){
+        var e = {};
 
-            var e = {};
-
-            if(object !== undefined){
-                e = object;
-            }
-
-            var models = type.replace(/\s+/g, '').split(',');
-
-            for (n in models){
-                add(e, models[n]);
-            }
-
-            return e;
+        if(object !== undefined){
+            e = object;
         }
+
+        var models = type.replace(/\s+/g, '').split(',');
+
+        for (n in models){
+            add(e, models[n]);
+        }
+
+        return e;
     }
 
     /**
@@ -107,13 +122,7 @@ var Atenea = function(){
         escena, con el id igual a @id.
     */
     self.scene = function(id, scene){
-
-        if (scene === undefined){
-            activeScene = scenes[id];
-            return;
-        } 
-
-        scenes[id] = scene;
+        activeScene = scenes[id];
     }
 
     self.start = function(id){
