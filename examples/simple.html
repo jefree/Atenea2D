@@ -16,6 +16,7 @@
 	//make models
 
 	Point = {
+
 		init:function(){
 			console.log('new Point');
 		},
@@ -26,6 +27,21 @@
 		draw : function(canvas){
 
 			canvas.fillRect(this.x, this. y, 10, 10);
+		},
+
+		logic:{
+
+			sensor: {up:'up'},
+			controller:{
+
+				jump:{
+					sensor:'up',
+					controller:'and',
+					actuator:'jump'
+				}
+			}, 
+
+			actuator:{jump:'Jump !'}
 		}
 	}
 
@@ -40,10 +56,28 @@
 	Atenea.register('Coord', Coord);
 
 	//expand object
-	p1 = Atenea.parse('Point', Coord);
+	p1 = Atenea.parse('Point');
 
 	//make objects from models
-	p2 = Atenea.parse('Point, Coord');
+	p2 = Atenea.parse('Coord');
+	Atenea.parse('Point', p2);
+
+	//extend logic
+	Atenea.logic(p1,{
+
+		sensor:{down:'down'},
+		controller:{
+
+			hide:{
+				sensor:'down, up',
+				operator:'and',
+				actuator:'hide'
+			}
+		},
+		actuator:{hide:'Hide!'}
+	})
+
+	console.log(p1.logic.controller);
 
 	p2.x = 100;
 	p2.y = 200;

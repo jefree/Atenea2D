@@ -8,6 +8,7 @@ var Atenea = function(){
 
     REXP_MODEL_ENTITY = /^[A-Z].*$/;
     REXP_MODEL_SCENE = /^[a-z]+$/;
+    REXP_WORDS_COMMA = /\s+/g;
 
     /*
       Almacena la referencia this para este objeto, para asi asegurar
@@ -105,7 +106,7 @@ var Atenea = function(){
             e = object;
         }
 
-        var models = type.replace(/\s+/g, '').split(',');
+        var models = StringToArray(type);
 
         for (n in models){
             add(e, models[n]);
@@ -133,27 +134,123 @@ var Atenea = function(){
     }
 
     /*
-      expande @e agregando las caracteristicas de @model, adicionalmente
+      Expande @e agregando las caracteristicas de @model, adicionalmente
       inicializa dichas caracteristicas haciendo un llamado al metodo #init
       dentro de @model.
 
       - e: objeto que se desea expander.
       - model: id del modelo que se usara para la expansion de @e.
     */
+
+    /*
+      Extiende el LogicBlock de una entidad, con el modelo de LogicBlock
+      en @model.
+
+      - e: entidad
+      - model: modelo del LogicBlock con el que se extendera el LogicBlock
+        actual de @e.
+    */
+    self.logic = function(e, model){
+
+        var attributes = ['sensor', 'controller', 'actuator']
+
+        //crear el logic si no existe
+        if( ! ('logic' in e)){
+            e.logic = {}
+        }
+
+        //convertir strings de controller en arreglos
+        parseLogic(model);
+
+        //extender sensor y actuator en el logic
+        for(var i=0; i<attributes.length; i++){
+
+            var attr = attributes[i];
+
+            if (attr in model){
+
+                if ( !(attr in e.logic) ){
+                    e.logic[attr] = {};
+                }
+
+                extend(e.logic[attr], model[attr]);
+            }
+        }
+    }
+
+    /*
+      Convierte un string de palabras separadas por comas, en un arreglo
+      con las mismas palabras.
+
+      - words: string de palabras.
+    */
+
+    var StringToArray = function(words){
+        return words.replace(REXP_WORDS_COMMA, '').split(',')
+    }
+
+    /*
+      Convierte, si lo son, strings de controller en @logic en arreglos.
+
+      - logic: modelo a ser parseado.
+    */
+    var parseLogic = function(logic){
+
+        var controllers = logic.controller;
+        var attributes = ['sensor', 'actuator'];
+
+        for (c in controllers){
+
+            for (var i=0; i<attributes.length; i++){
+                var attr = attributes[i];
+
+                if(typeof(controllers[c][attr]) == 'string'){
+
+                    controllers[c][attr] = StringToArray(controllers[c][attr]);
+
+                }
+            }
+        }
+    }
+
+    /*
+      Extiende las caracteristicas del objeto @dst con las del objeto
+      @src.
+
+      - dst - objeto a ser extendido.
+      - src - objeto con las nuevas caracteristicas.
+    */
+    var extend = function(dst, src){
+
+        for (f in src){
+
+            if (! (f in dst) ){
+                dst[f] = src[f];
+            }
+        }
+    }
+
+    /*
+      Extiende una entidad @e con las caractetisticas del model @model, y lo
+      inicializa de ser necesario.
+
+      - e: entidad ha ser extendida
+      - model: modelo base para extender a la entidad @e.
+    */
     var add = function(e, model){
 
         if(model in models){
 
-            for(attr in models[model]){
+            var model_data = models[model];
 
-                if (! (attr in e) ){
+            extend(e, model_data);
 
-                    e[attr] = models[model][attr];
-                }
+            if ('logic' in model_data){
+                self.logic(e, model_data.logic);
             }
 
-            if("init" in models[model]){
-                models[model].init.call(e);
+            if("init" in model_data){
+                model_data.init.call(e);
             }
         }
     }
