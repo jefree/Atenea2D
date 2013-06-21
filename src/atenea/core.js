@@ -1,7 +1,6 @@
 
 var Atenea = function(){
 
-
     /*
       Constantes relacionadas a expresiones regulares.
     */
@@ -45,9 +44,9 @@ var Atenea = function(){
       - domParent: objeto dentro del cuerpo html al que se le
         asignara el canvas creado como hijo.
     */
-	self.init = function(w, h, domParent){
+    self.init = function(w, h, domParent){
 
-		canvas.init(w, h, domParent);
+        canvas.init(w, h, domParent);
 
         // select best function for animFrame
 
@@ -59,7 +58,7 @@ var Atenea = function(){
                         window.setTimeout(callback, 1000 / 60);
                     };
         })();
-	}
+    }
 
     /**
       Registar un modelo para que este pueda ser usado posteriormente en
@@ -77,11 +76,11 @@ var Atenea = function(){
             
             newModel = {}
 
-            for(f in model){
-                newModel[f] = model[f];
-            }
+            extend(newModel, model);
 
-          models[id] = newModel;
+            newModel.logic && parseLogic(newModel.logic);
+
+            models[id] = newModel;
         }
         else if(id.match(REXP_MODEL_SCENE)){
 
@@ -102,9 +101,7 @@ var Atenea = function(){
 
         var e = {};
 
-        if(object !== undefined){
-            e = object;
-        }
+        object && (e=object);
 
         var models = StringToArray(type);
 
@@ -126,6 +123,13 @@ var Atenea = function(){
         activeScene = scenes[id];
     }
 
+    /**
+      Lanza el loop principal de la aplicacion, usando la escena con el id
+      igual a @id.
+
+      - id: id de la escena a usar como principal.
+    */
+
     self.start = function(id){
 
         activeScene = scenes[id];
@@ -134,47 +138,34 @@ var Atenea = function(){
     }
 
     /*
-      Expande @e agregando las caracteristicas de @model, adicionalmente
-      inicializa dichas caracteristicas haciendo un llamado al metodo #init
-      dentro de @model.
-
-      - e: objeto que se desea expander.
-      - model: id del modelo que se usara para la expansion de @e.
-    */
-
-    /*
       Extiende el LogicBlock de una entidad, con el modelo de LogicBlock
       en @model.
 
       - e: entidad
       - model: modelo del LogicBlock con el que se extendera el LogicBlock
         actual de @e.
+      - parse: indica si se debe o no parsear @modelo.
     */
-    self.logic = function(e, model){
+    self.logic = function(e, model, parse){
+
+        parse || (parse=true);
 
         var attributes = ['sensor', 'controller', 'actuator']
 
         //crear el logic si no existe
-        if( ! ('logic' in e)){
-            e.logic = {}
-        }
-
+        e.logic || (e.logic = {});
+        
         //convertir strings de controller en arreglos
-        parseLogic(model);
+        parse && parseLogic(model);
 
         //extender sensor y actuator en el logic
         for(var i=0; i<attributes.length; i++){
 
             var attr = attributes[i];
 
-            if (attr in model){
+            model[attr] && (e.logic[attr] || (e.logic[attr]={});
 
-                if ( !(attr in e.logic) ){
-                    e.logic[attr] = {};
-                }
-
-                extend(e.logic[attr], model[attr]);
-            }
+            extend(e.logic[attr], model[attr]);
         }
     }
 
@@ -204,11 +195,9 @@ var Atenea = function(){
             for (var i=0; i<attributes.length; i++){
                 var attr = attributes[i];
 
-                if(typeof(controllers[c][attr]) == 'string'){
-
+                (typeof(controllers[c][attr]) == 'string') &&
                     controllers[c][attr] = StringToArray(controllers[c][attr]);
-
-                }
+                
             }
         }
     }
@@ -223,10 +212,7 @@ var Atenea = function(){
     var extend = function(dst, src){
 
         for (f in src){
-
-            if (! (f in dst) ){
-                dst[f] = src[f];
-            }
+            dst[f] || (dst[f]=src[f]);
         }
     }
 
@@ -245,13 +231,10 @@ var Atenea = function(){
 
             extend(e, model_data);
 
-            if ('logic' in model_data){
-                self.logic(e, model_data.logic);
-            }
-
-            if("init" in model_data){
-                model_data.init.call(e);
-            }
+            model_data.logic && self.logic(e, model_data.logic, false);
+            
+            model_data.init && model_data.init.call(e);
+            
         }
     }
 
@@ -288,7 +271,7 @@ var Atenea = function(){
       Objetos canvas interno, que maneja todo relacionado a el tag canvas
       dentro de cuerpo del html.
     */
-	var canvas = new (function(){
+    var canvas = new (function(){
 
         /*
           Guarda la referencia este objeto.
@@ -305,20 +288,20 @@ var Atenea = function(){
           - domParent: elemento dentro del DOM al que se agregara el canvas
             creado.
         */
-		self.init = function(w, h, domParent){
+        self.init = function(w, h, domParent){
 
-			self.domElement = document.createElement('canvas');
-			self.context = self.domElement.getContext('2d');
+            self.domElement = document.createElement('canvas');
+            self.context = self.domElement.getContext('2d');
 
             self.domElement.width = w;
             self.domElement.height = h;
 
-			if(domParent !== undefined){
-				domParent.appendChild(self.domElement);
-			}else{
-				document.body.appendChild(self.domElement);
-			}
-		}
+            if(domParent !== undefined){
+                domParent.appendChild(self.domElement);
+            }else{
+                document.body.appendChild(self.domElement);
+            }
+        }
 
         /*
           Asigna o retorna el tamaño del canvas segun el numero parametros
@@ -328,23 +311,23 @@ var Atenea = function(){
           - 2 args: establece el tamaño del canvas, dandole un alto igual a
             args[0] y un alto igual a args[1].
         */
-		self.size = function(){
+        self.size = function(){
 
-			if(arguments.length == 2){
+            if(arguments.length == 2){
 
-				self.domElement.width = arguments[0];
-				self.domElement.height = arguments[1];
+                self.domElement.width = arguments[0];
+                self.domElement.height = arguments[1];
 
-			}
-			else if (arguments.length == 0){
+            }
+            else if (arguments.length == 0){
 
-				return {
-					width:self.domElement.width, 
-					height:self.domElement.height
-				};
-			}
-		}
-	})();
+                return {
+                    width:self.domElement.width, 
+                    height:self.domElement.height
+                };
+            }
+        }
+    })();
 }
 
 /*
