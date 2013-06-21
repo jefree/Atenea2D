@@ -1,13 +1,13 @@
 
 var Atenea = function(){
 
-
     /*
       Constantes relacionadas a expresiones regulares.
     */
 
     REXP_MODEL_ENTITY = /^[A-Z].*$/;
     REXP_MODEL_SCENE = /^[a-z]+$/;
+    REXP_WORDS_COMMA = /\s+/g;
 
     /*
       Almacena la referencia this para este objeto, para asi asegurar
@@ -44,9 +44,9 @@ var Atenea = function(){
       - domParent: objeto dentro del cuerpo html al que se le
         asignara el canvas creado como hijo.
     */
-	self.init = function(w, h, domParent){
+    self.init = function(w, h, domParent){
 
-		canvas.init(w, h, domParent);
+        canvas.init(w, h, domParent);
 
         // select best function for animFrame
 
@@ -58,7 +58,7 @@ var Atenea = function(){
                         window.setTimeout(callback, 1000 / 60);
                     };
         })();
-	}
+    }
 
     /**
       Registar un modelo para que este pueda ser usado posteriormente en
@@ -76,11 +76,11 @@ var Atenea = function(){
             
             newModel = {}
 
-            for(f in model){
-                newModel[f] = model[f];
-            }
+            extend(newModel, model);
 
-          models[id] = newModel;
+            newModel.logic && parseLogic(newModel.logic);
+
+            models[id] = newModel;
         }
         else if(id.match(REXP_MODEL_SCENE)){
 
@@ -101,11 +101,9 @@ var Atenea = function(){
 
         var e = {};
 
-        if(object !== undefined){
-            e = object;
-        }
+        object && (e=object);
 
-        var models = type.replace(/\s+/g, '').split(',');
+        var models = StringToArray(type);
 
         for (n in models){
             add(e, models[n]);
@@ -125,6 +123,13 @@ var Atenea = function(){
         activeScene = scenes[id];
     }
 
+    /**
+      Lanza el loop principal de la aplicacion, usando la escena con el id
+      igual a @id.
+
+      - id: id de la escena a usar como principal.
+    */
+
     self.start = function(id){
 
         activeScene = scenes[id];
@@ -133,28 +138,103 @@ var Atenea = function(){
     }
 
     /*
-      expande @e agregando las caracteristicas de @model, adicionalmente
-      inicializa dichas caracteristicas haciendo un llamado al metodo #init
-      dentro de @model.
+      Extiende el LogicBlock de una entidad, con el modelo de LogicBlock
+      en @model.
 
-      - e: objeto que se desea expander.
-      - model: id del modelo que se usara para la expansion de @e.
+      - e: entidad
+      - model: modelo del LogicBlock con el que se extendera el LogicBlock
+        actual de @e.
+      - parse: indica si se debe o no parsear @modelo.
+    */
+    self.logic = function(e, model, parse){
+
+        parse || (parse=true);
+
+        var attributes = ['sensor', 'controller', 'actuator']
+
+        //crear el logic si no existe
+        e.logic || (e.logic = {});
+        
+        //convertir strings de controller en arreglos
+        parse && parseLogic(model);
+
+        //extender sensor y actuator en el logic
+        for(var i=0; i<attributes.length; i++){
+
+            var attr = attributes[i];
+
+            model[attr] && (e.logic[attr] || (e.logic[attr]={});
+
+            extend(e.logic[attr], model[attr]);
+        }
+    }
+
+    /*
+      Convierte un string de palabras separadas por comas, en un arreglo
+      con las mismas palabras.
+
+      - words: string de palabras.
+    */
+
+    var StringToArray = function(words){
+        return words.replace(REXP_WORDS_COMMA, '').split(',')
+    }
+
+    /*
+      Convierte, si lo son, strings de controller en @logic en arreglos.
+
+      - logic: modelo a ser parseado.
+    */
+    var parseLogic = function(logic){
+
+        var controllers = logic.controller;
+        var attributes = ['sensor', 'actuator'];
+
+        for (c in controllers){
+
+            for (var i=0; i<attributes.length; i++){
+                var attr = attributes[i];
+
+                (typeof(controllers[c][attr]) == 'string') &&
+                    controllers[c][attr] = StringToArray(controllers[c][attr]);
+                
+            }
+        }
+    }
+
+    /*
+      Extiende las caracteristicas del objeto @dst con las del objeto
+      @src.
+
+      - dst - objeto a ser extendido.
+      - src - objeto con las nuevas caracteristicas.
+    */
+    var extend = function(dst, src){
+
+        for (f in src){
+            dst[f] || (dst[f]=src[f]);
+        }
+    }
+
+    /*
+      Extiende una entidad @e con las caractetisticas del model @model, y lo
+      inicializa de ser necesario.
+
+      - e: entidad ha ser extendida
+      - model: modelo base para extender a la entidad @e.
     */
     var add = function(e, model){
 
         if(model in models){
 
-            for(attr in models[model]){
+            var model_data = models[model];
 
-                if (! (attr in e) ){
+            extend(e, model_data);
 
-                    e[attr] = models[model][attr];
-                }
-            }
-
-            if("init" in models[model]){
-                models[model].init.call(e);
-            }
+            model_data.logic && self.logic(e, model_data.logic, false);
+            
+            model_data.init && model_data.init.call(e);
+            
         }
     }
 
@@ -191,7 +271,7 @@ var Atenea = function(){
       Objetos canvas interno, que maneja todo relacionado a el tag canvas
       dentro de cuerpo del html.
     */
-	var canvas = new (function(){
+    var canvas = new (function(){
 
         /*
           Guarda la referencia este objeto.
@@ -208,20 +288,20 @@ var Atenea = function(){
           - domParent: elemento dentro del DOM al que se agregara el canvas
             creado.
         */
-		self.init = function(w, h, domParent){
+        self.init = function(w, h, domParent){
 
-			self.domElement = document.createElement('canvas');
-			self.context = self.domElement.getContext('2d');
+            self.domElement = document.createElement('canvas');
+            self.context = self.domElement.getContext('2d');
 
             self.domElement.width = w;
             self.domElement.height = h;
 
-			if(domParent !== undefined){
-				domParent.appendChild(self.domElement);
-			}else{
-				document.body.appendChild(self.domElement);
-			}
-		}
+            if(domParent !== undefined){
+                domParent.appendChild(self.domElement);
+            }else{
+                document.body.appendChild(self.domElement);
+            }
+        }
 
         /*
           Asigna o retorna el tamaño del canvas segun el numero parametros
@@ -231,23 +311,23 @@ var Atenea = function(){
           - 2 args: establece el tamaño del canvas, dandole un alto igual a
             args[0] y un alto igual a args[1].
         */
-		self.size = function(){
+        self.size = function(){
 
-			if(arguments.length == 2){
+            if(arguments.length == 2){
 
-				self.domElement.width = arguments[0];
-				self.domElement.height = arguments[1];
+                self.domElement.width = arguments[0];
+                self.domElement.height = arguments[1];
 
-			}
-			else if (arguments.length == 0){
+            }
+            else if (arguments.length == 0){
 
-				return {
-					width:self.domElement.width, 
-					height:self.domElement.height
-				};
-			}
-		}
-	})();
+                return {
+                    width:self.domElement.width, 
+                    height:self.domElement.height
+                };
+            }
+        }
+    })();
 }
 
 /*
