@@ -163,7 +163,7 @@ var Atenea = function(){
 
             var attr = attributes[i];
 
-            model[attr] && (e.logic[attr] || (e.logic[attr]={});
+            model[attr] && (e.logic[attr] || (e.logic[attr]={}));
 
             extend(e.logic[attr], model[attr]);
         }
@@ -196,7 +196,7 @@ var Atenea = function(){
                 var attr = attributes[i];
 
                 (typeof(controllers[c][attr]) == 'string') &&
-                    controllers[c][attr] = StringToArray(controllers[c][attr]);
+                    (controllers[c][attr] = StringToArray(controllers[c][attr]));
                 
             }
         }
