@@ -34,6 +34,11 @@ var Atenea = function(){
     */
     var models = {};
 
+    /*
+      Es el encargado de manejar todo lo relacionado a los eventos
+      del teclado.
+    */
+    var keys = new KeyEventManager();
 
     /**
       Inicializa las variables necesarias para el correcto
@@ -268,7 +273,7 @@ var Atenea = function(){
       Actualiza el estado de las entidades en la escena actual.
     */
     var update = function(){
-        console.log('update');
+        keys.update();
     }
 
     /*
