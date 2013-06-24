@@ -212,7 +212,17 @@ var Atenea = function(){
     var extend = function(dst, src){
 
         for (f in src){
-            dst[f] || (dst[f]=src[f]);
+
+            if( ! dst.hasOwnProperty(f) ){
+
+                if ( typeof(src[f]) == 'object' ){
+                    dst[f] = {};
+                    extend(dst[f], src[f]);
+                }
+                else {
+                    dst[f] = src[f];
+                }
+            }
         }
     }
 
