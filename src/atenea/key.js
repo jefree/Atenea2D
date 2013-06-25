@@ -1,18 +1,31 @@
 var KeyEventManager = function(){
 
     /*
+      Diccionario con los posibles eventos de las teclas.
+    */
+
+    var EVENT_MAP = {
+
+        u: 'UP', up:'UP',
+        d: 'DOWN', down: 'DOWN',
+        p: 'PRESSED', press: 'PRESSED',
+        r: 'RELEASED', release: 'RELEASED'
+    }
+
+    /*
       Diccionario con teclas que no poseen un codigo ascii valido.
     */
     var SPECIAL_MAP = {
-        space:32,
-        ctrl:17, 
-        shift:16,
-        alt:18,
-        tab:9,
-        up:38,
-        down:40,
-        left:37,
-        right:39
+        tab: 9,
+        shift: 16,
+        control: 17, ctrl: 17, 
+        alt: 18,
+        escape: 27, esc: 27,
+        space: 32,
+        left: 37, arrow_left: 37,
+        up: 38, arrow_up: 38,
+        right: 39, arrow_right: 39,
+        down: 40, arrow_down: 40
     };
 
     /*
@@ -97,6 +110,27 @@ var KeyEventManager = function(){
                 }
             }
         }
+    }
+
+    self.parseString = function(string){
+
+        var result = [];
+
+        if (string.indexOf('+') != -1){
+            result = Util.StringToArray(string, '+');
+
+            for (var i=0; i<result.length; i++){
+                result[i] = keyCode(result[i]);
+            }
+        }
+        else if(string.indexOf('-') != -1){
+            result = Util.StringToArray(string, '-')
+
+            result[0] = keyCode(result[0]);
+            result[1] = EVENT_MAP[result[1]]; 
+        }
+
+        return result;
     }
 
     /*

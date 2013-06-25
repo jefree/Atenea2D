@@ -79,7 +79,9 @@ var Atenea = function(){
 
         if(id.match(REXP_MODEL_ENTITY)){
             
-            newModel = {}
+            console.log('register',id)
+
+            var newModel = {}
 
             extend(newModel, model);
 
@@ -104,11 +106,13 @@ var Atenea = function(){
     */
     self.parse = function(type, object){
 
+        console.log('parse', type)
+
         var e = {};
 
         object && (e=object);
 
-        var models = StringToArray(type);
+        var models = Util.StringToArray(type);
 
         for (n in models){
             add(e, models[n]);
@@ -153,7 +157,9 @@ var Atenea = function(){
     */
     self.logic = function(e, model, parse){
 
-        parse || (parse=true);
+        console.log('parse '+ parse);
+
+        (parse === undefined) && (parse=true);
 
         var attributes = ['sensor', 'controller', 'actuator']
 
@@ -175,38 +181,34 @@ var Atenea = function(){
     }
 
     /*
-      Convierte un string de palabras @words separadas por @sprt, en un arreglo
-      con las mismas palabras.
-
-      - words: string de palabras.
-      - srpt: separador de las palabras, la coma por defecto.
-    */
-
-    var StringToArray = function(words, sprt){
-
-        (sprt == null) && (sprt=',');
-
-        return words.replace(REXP_WORDS_SPACE, '').split(sprt);
-    }
-
-    /*
       Convierte, si lo son, strings de controller en @logic en arreglos.
 
       - logic: modelo a ser parseado.
     */
     var parseLogic = function(logic){
 
+        console.log('parse logic');
+
         var controllers = logic.controller;
         var attributes = ['sensor', 'actuator'];
 
-        for (c in controllers){
+        for (var c in controllers){
+
+            var ctrl = controllers[c]
 
             for (var i=0; i<attributes.length; i++){
                 var attr = attributes[i];
 
-                (typeof(controllers[c][attr]) == 'string') &&
-                    (controllers[c][attr] = StringToArray(controllers[c][attr]));
+                (typeof(ctrl[attr]) == 'string') &&
+                    (ctrl[attr] = Util.StringToArray(ctrl[attr]));
                 
+            }
+
+            // parse each sensor
+            if ( ctrl.hasOwnProperty('sensor') ){
+                for (var i=0; i<ctrl.sensor.length; i++){
+                    ctrl.sensor[i] = keys.parseString(ctrl.sensor[i]);
+                }
             }
         }
     }
