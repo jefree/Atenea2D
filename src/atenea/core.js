@@ -215,7 +215,7 @@ var Atenea = function(){
 
             if( ! dst.hasOwnProperty(f) ){
 
-                if ( typeof(src[f]) == 'object' ){
+                if ( src[f].constructor.name == 'Object' ){
                     dst[f] = {};
                     extend(dst[f], src[f]);
                 }
