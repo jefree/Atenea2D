@@ -7,7 +7,7 @@ var Atenea = function(){
 
     REXP_MODEL_ENTITY = /^[A-Z].*$/;
     REXP_MODEL_SCENE = /^[a-z]+$/;
-    REXP_WORDS_COMMA = /\s+/g;
+    REXP_WORDS_SPACE = /\s+/g;
 
     /*
       Almacena la referencia this para este objeto, para asi asegurar
@@ -170,14 +170,18 @@ var Atenea = function(){
     }
 
     /*
-      Convierte un string de palabras separadas por comas, en un arreglo
+      Convierte un string de palabras @words separadas por @sprt, en un arreglo
       con las mismas palabras.
 
       - words: string de palabras.
+      - srpt: separador de las palabras, la coma por defecto.
     */
 
-    var StringToArray = function(words){
-        return words.replace(REXP_WORDS_COMMA, '').split(',')
+    var StringToArray = function(words, sprt){
+
+        (sprt == null) && (sprt=',');
+
+        return words.replace(REXP_WORDS_SPACE, '').split(sprt);
     }
 
     /*
