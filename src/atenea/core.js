@@ -196,18 +196,19 @@ var Atenea = function(){
 
             var ctrl = controllers[c]
 
+            ctrl.operator = ctrl.operator.toUpperCase();
+
             for (var i=0; i<attributes.length; i++){
                 var attr = attributes[i];
 
                 (typeof(ctrl[attr]) == 'string') &&
                     (ctrl[attr] = Util.StringToArray(ctrl[attr]));
-                
             }
 
             // parse each sensor
-            if ( ctrl.hasOwnProperty('sensor') ){
-                for (var i=0; i<ctrl.sensor.length; i++){
-                    ctrl.sensor[i] = keys.parseString(ctrl.sensor[i]);
+            if ( logic.hasOwnProperty('sensor') ){
+                for (var name in logic.sensor){
+                    logic.sensor[name] = keys.parseString(logic.sensor[name]);
                 }
             }
         }
@@ -267,15 +268,128 @@ var Atenea = function(){
         entities = activeScene.entities;
 
         for (var i=0; i<entities.length; i++){
-            entities[i].draw(canvas.context);
+            entities[i].draw.apply(entities[i], [canvas.context]);
         }
+    }
+
+    /*
+    */
+    var processLogic = function(){
+
+        for(var i=0; i<activeScene.entities.length; i++){
+
+            var e = activeScene.entities[i];
+
+            var all_sensors = getSensorState(e.logic.sensor);
+
+            for (var name in e.logic.controller){
+
+                var c = e.logic.controller[name];
+                var sensors = []
+                var operator = c.operator;
+                var output = false;
+
+                // filtrar los sensores de este controlador
+                for (var n in c.sensor){
+                    sensors.push(all_sensors[c.sensor[n]]);
+                }
+
+                // determinar la salida del controlador segun el operador
+                if ( operator == 'AND'){
+                    output = sensors.indexOf(false) == -1;
+                }
+                else if(operator == 'OR'){
+                    output = sensors.indexOf(true) != -1;
+                }
+                else if(operator == 'NAND'){
+                    output = sensors.indexOf(true) == -1;
+                }
+                else if(operator == 'NOR'){
+                    output = sensors.indexOf(false) != -1;
+                }
+                else if (operator == 'XOR'){
+                    output = sensors.filter( function(v){return v;} ).length == 1;
+                }
+                else if(operator == 'XNOR'){
+                    output = sensors.filter( function(v){return !v;} ).length == 1;
+                }
+
+                if (output){
+
+                    for (var n in c.actuator){
+                        e.logic.actuator[c.actuator[n]].call(e);
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+      Analiza el estado de cada uno de los sensores en la entidad @e
+      y retorna un diccionario con dichos estados.
+
+      - e: entidad que contiene los sensores ha ser analizados.
+    */
+    var getSensorState = function(sensors){
+
+        var sensor_status = {};
+
+        key_sensor = getKeySensorState(sensors);
+
+        extend(sensor_status, key_sensor);
+
+        return sensor_status;
+    }
+
+    /*
+      Analiza los sensores en @sensors, asumiendo que son sensores de teclado.
+
+      - sensors: sensores de teclado ha ser analizados.
+    */
+    var getKeySensorState = function(sensors){
+
+        key_sensor_status = {};
+
+        for (var name in sensors){
+
+            var sensor = sensors[name];
+
+            if (sensor.length == 1){
+                key_sensor_status[name] = 
+                    ['DOWN', 'PRESSED'].indexOf(keys.key(sensor[0])) != -1;
+            
+            } else {
+
+                key_sensor_status[name] = true;
+                var state = ['DOWN', 'PRESSED'];
+                var limit = sensor.length;
+
+                if (typeof sensor[sensor.length-1] == 'string'){
+                    state = [sensor[sensor.length-1]];
+                    limit -= 1;
+                }
+
+                for (var s=0; s<limit; s++){
+                    key_status = keys.key(sensor[s])
+
+                    if(state.indexOf(key_status) == -1){
+                        key_sensor_status[name] = false;
+                        break;
+                    } 
+                }
+            }
+        }
+
+        return key_sensor_status;
     }
 
     /*
       Actualiza el estado de las entidades en la escena actual.
     */
     var update = function(){
+        
         keys.update();
+        processLogic();
     }
 
     /*

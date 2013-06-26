@@ -24,25 +24,30 @@
 		
 		x:1,
 		y:2,
+        color: 'red',
 
 		draw : function(canvas){
 
+            canvas.fillStyle = this.color;
 			canvas.fillRect(this.x, this. y, 10, 10);
 		},
 
 		logic:{
 
-			sensor: {up:'up-down'},
+			sensor: {up:'up', m: 'm', k: 'k'},
 			controller:{
 
 				jump:{
-					sensor:'up',
+					sensor:'up, m, k',
 					operator:'and',
 					actuator:'jump'
 				}
 			}, 
 
-			actuator:{jump:'Jump !'}
+			actuator:{
+                
+                jump: function(){ this.color = 'green';}
+            }
 		}
 	}
 
@@ -67,28 +72,34 @@
 	//extend logic
 	Atenea.logic(p1,{
 
-		sensor:{down:'down'},
+		sensor:{
+            down:'arrow_down-down',
+            c1: 'x+j-down'
+        },
 		controller:{
 
 			hide:{
-				sensor:'arrow_down-down, ctrl+j',
-				operator:'and',
+				sensor:'down, c1',
+				operator:'or',
 				actuator:'hide'
 			}
 		},
-		actuator:{hide:'Hide!'}
-	})
+		actuator:{
+
+            hide: function(){ console.log('Hide !'); }
+        }
+    });
 
 	//console.log(p1.logic.controller);
 
 	p2.x = 100;
 	p2.y = 200;
 
-	console.log(p1.logic.controller.hide.sensor);
+	console.log(p1.logic.sensor);
 
 	Atenea.register('main', {
 
-		entities : [p1, p2]
+		entities : [p1]
 	});
 
 	Atenea.start('main');

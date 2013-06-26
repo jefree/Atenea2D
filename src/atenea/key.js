@@ -49,7 +49,7 @@ var KeyEventManager = function(){
     var keydown = function(evt){
         
         var key = evt.keyCode;
-        events.push([key, 0]);   
+        events.push([key, 0]);  
     }
 
     /*
@@ -117,9 +117,21 @@ var KeyEventManager = function(){
         var result = [];
 
         if (string.indexOf('+') != -1){
-            result = Util.StringToArray(string, '+');
 
-            for (var i=0; i<result.length; i++){
+            result = Util.StringToArray(string, '+');
+            var limit =  result.length;
+
+            if (result[result.length-1].indexOf('-')){
+
+                split = Util.StringToArray(result[result.length-1], '-');
+
+                result[result.length-1] = keyCode(split[0]);
+                result.push(EVENT_MAP[split[1]]);
+
+                limit -= 1;
+            } 
+
+            for (var i=0; i<limit; i++){
                 result[i] = keyCode(result[i]);
             }
         }
@@ -128,6 +140,9 @@ var KeyEventManager = function(){
 
             result[0] = keyCode(result[0]);
             result[1] = EVENT_MAP[result[1]]; 
+        
+        } else {
+            result = [string];
         }
 
         return result;
