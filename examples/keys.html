@@ -1,0 +1,79 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Simple Example with Atenea</title>
+</head>
+<body>
+
+</body>
+<script src="../src/atenea/util.js" type="text/javascript"></script>
+<script src="../src/atenea/key.js" type="text/javascript"></script>
+<script src="../src/atenea/core.js" type="text/javascript"></script>
+<script type="text/javascript">
+	
+	Atenea.init(400, 400);
+
+	Atenea.register('Point',{
+		color: 'green',
+		pos: [200, 200],
+		size: [20, 20],
+
+		draw: function(canvas){
+			canvas.fillStyle = 'black';
+			canvas.fillRect(this.pos[0], this.pos[1], this.size[0], this.size[1])
+		}
+	});
+
+	my_point = Atenea.parse('Point');
+
+	Atenea.logic(my_point, {
+
+		sensor: {
+			right: 'right',
+			left: 'left',
+			up: 'up',
+			down: 'down'
+		},
+
+		actuator: {
+			forward: function(){ this.pos[0] += 0.5; },
+			backward: function(){ this.pos[0] -= 0.5; },
+			up: function(){ this.pos[1] -= 0.5; },
+			down: function(){ this.pos[1] += 0.5; }
+		},
+
+		controller: {
+			forward: {
+				sensor:'right',
+				operator: 'and',
+				actuator: 'forward'
+			},
+
+			backward: {
+				sensor:'left',
+				operator: 'and',
+				actuator: 'backward'
+			},
+
+			up: {
+				sensor:'up',
+				operator: 'and',
+				actuator: 'up'
+			},
+
+			down: {
+				sensor:'down',
+				operator: 'and',
+				actuator: 'down'
+			},
+		}
+	});
+
+	Atenea.register('main', {
+		entities: [my_point]
+	});
+
+	Atenea.start('main');
+
+</script>
+</html>
