@@ -5,8 +5,9 @@ var Atenea = function(){
       Constantes relacionadas a expresiones regulares.
     */
 
-    REXP_MODEL_ENTITY = /^[A-Z].*$/;
+    REXP_MODEL_ENTITY = /^[A-Z][a-z]+([A-Z][a-z]+)*/;
     REXP_MODEL_SCENE = /^[a-z]+$/;
+    REXP_MODEL_LOGIC = /^[A-Z]+$/;
     REXP_WORDS_SPACE = /\s+/g;
 
     /*
@@ -24,15 +25,21 @@ var Atenea = function(){
 
     /*
       Diccionario con todas las escenas que allan sido registradas
-      con el llamado a Atenea.scene.    
+      con el llamado a #scene.    
     */
     var scenes = {};
     
     /*
       Diccionario con todos los modelos registrados con el llamado
-      Atenea.register.
+      #register.
     */
     var models = {};
+
+    /*
+      Diccionario con todos los logics regitrados con el llamado  a 
+      #register
+    */
+    var logics = {};
 
 
     /**
@@ -72,19 +79,28 @@ var Atenea = function(){
     */
     self.register = function(id, model){
 
-        if(id.match(REXP_MODEL_ENTITY)){
-            
-            newModel = {}
+        var newModel = {}
+        extend(newModel, model);
 
-            extend(newModel, model);
+        if(id.match(REXP_MODEL_ENTITY)){
+
+            console.log('new entity');
 
             newModel.logic && parseLogic(newModel.logic);
-
             models[id] = newModel;
         }
         else if(id.match(REXP_MODEL_SCENE)){
 
-            scenes[id] = model;
+            console.log('new scene');
+
+            scenes[id] = newModel;
+        }
+        else if(id.match(REXP_MODEL_LOGIC)){
+
+            console.log('new logic');
+
+            parseLogic(newModel);
+            logics[id] = newModel;
         }
     }
 
@@ -106,7 +122,13 @@ var Atenea = function(){
         var models = StringToArray(type);
 
         for (n in models){
-            add(e, models[n]);
+
+            if (models[n].match(REXP_MODEL_ENTITY)){
+                add(e, models[n]);
+            }
+            else if(models[n].match(REXP_MODEL_LOGIC)){
+                self.logic(e, logics[models[n]], false);
+            }
         }
 
         return e;
@@ -155,7 +177,7 @@ var Atenea = function(){
         //crear el logic si no existe
         e.logic || (e.logic = {});
         
-        //convertir strings de controller en arreglos
+        //convert<ir strings de controller en arreglos
         parse && parseLogic(model);
 
         //extender sensor y actuator en el logic
@@ -268,7 +290,7 @@ var Atenea = function(){
       Actualiza el estado de las entidades en la escena actual.
     */
     var update = function(){
-        console.log('update');
+        //console.log('update');
     }
 
     /*
