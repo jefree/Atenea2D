@@ -138,20 +138,21 @@ var KeyEventManager = function(){
         else if(string.indexOf('-') != -1){
             result = Util.StringToArray(string, '-')
 
-            result[0] = keyCode(result[0]);
-            result[1] = EVENT_MAP[result[1]]; 
+            result.push( keyCode(result[0]) );
+            result.push( EVENT_MAP[result[1]] ); 
         
         } else {
-            result = [string];
+            result.push(keyCode(string));
         }
 
         return result;
     }
 
     /*
-      Retorna el keyCode de la tecla especificada en @key.
+      Retorna el keyCode de la tecla especificada por @key.
     */
     var keyCode = function(key){
+        //return 65;
         return SPECIAL_MAP[key] || key.toUpperCase().charCodeAt(0);    
     }
 

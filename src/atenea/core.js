@@ -78,8 +78,6 @@ var Atenea = function(){
     self.register = function(id, model){
 
         if(id.match(REXP_MODEL_ENTITY)){
-            
-            console.log('register',id)
 
             var newModel = {}
 
@@ -105,8 +103,6 @@ var Atenea = function(){
         caracteristicas de los modelos enunciados en @type
     */
     self.parse = function(type, object){
-
-        console.log('parse', type)
 
         var e = {};
 
@@ -157,15 +153,13 @@ var Atenea = function(){
     */
     self.logic = function(e, model, parse){
 
-        console.log('parse '+ parse);
-
         (parse === undefined) && (parse=true);
 
         var attributes = ['sensor', 'controller', 'actuator']
 
         //crear el logic si no existe
         e.logic || (e.logic = {});
-        
+
         //convertir strings de controller en arreglos
         parse && parseLogic(model);
 
@@ -187,14 +181,12 @@ var Atenea = function(){
     */
     var parseLogic = function(logic){
 
-        console.log('parse logic');
-
         var controllers = logic.controller;
         var attributes = ['sensor', 'actuator'];
 
-        for (var c in controllers){
+        for (var n in controllers){
 
-            var ctrl = controllers[c]
+            var ctrl = controllers[n];
 
             ctrl.operator = ctrl.operator.toUpperCase();
 
@@ -204,12 +196,12 @@ var Atenea = function(){
                 (typeof(ctrl[attr]) == 'string') &&
                     (ctrl[attr] = Util.StringToArray(ctrl[attr]));
             }
+        }
 
-            // parse each sensor
-            if ( logic.hasOwnProperty('sensor') ){
-                for (var name in logic.sensor){
-                    logic.sensor[name] = keys.parseString(logic.sensor[name]);
-                }
+        // parse each sensor
+        if ( logic.hasOwnProperty('sensor') ){
+            for (var name in logic.sensor){
+                logic.sensor[name] = keys.parseString(logic.sensor[name]);
             }
         }
     }
@@ -265,7 +257,10 @@ var Atenea = function(){
     */
     var draw = function(){
 
-        entities = activeScene.entities;
+        var entities = activeScene.entities;
+
+        canvas.context.fillStyle = 'white';
+        canvas.context.fillRect(0, 0, canvas.size().width, canvas.size().height)
 
         for (var i=0; i<entities.length; i++){
             entities[i].draw.apply(entities[i], [canvas.context]);
@@ -355,6 +350,7 @@ var Atenea = function(){
             var sensor = sensors[name];
 
             if (sensor.length == 1){
+
                 key_sensor_status[name] = 
                     ['DOWN', 'PRESSED'].indexOf(keys.key(sensor[0])) != -1;
             
