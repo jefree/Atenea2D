@@ -36,11 +36,15 @@ var Atenea = function(){
     var models = {};
 
     /*
+      Es el encargado de manejar todo lo relacionado a los eventos
+      del teclado.
+    */
+    var keys = new KeyEventManager();
+    /*
       Diccionario con todos los logics regitrados con el llamado  a 
       #register
     */
     var logics = {};
-
 
     /**
       Inicializa las variables necesarias para el correcto
@@ -84,20 +88,14 @@ var Atenea = function(){
 
         if(id.match(REXP_MODEL_ENTITY)){
 
-            console.log('new entity');
-
             newModel.logic && parseLogic(newModel.logic);
             models[id] = newModel;
         }
         else if(id.match(REXP_MODEL_SCENE)){
 
-            console.log('new scene');
-
             scenes[id] = newModel;
         }
-        else if(id.match(REXP_MODEL_LOGIC)){
-
-            console.log('new logic');
+        else if(id.match(REXP_MODEL_LOGIC)){s
 
             parseLogic(newModel);
             logics[id] = newModel;
@@ -119,7 +117,7 @@ var Atenea = function(){
 
         object && (e=object);
 
-        var models = StringToArray(type);
+        var models = Util.StringToArray(type);
 
         for (n in models){
 
@@ -170,14 +168,14 @@ var Atenea = function(){
     */
     self.logic = function(e, model, parse){
 
-        parse || (parse=true);
+        (parse === undefined) && (parse=true);
 
         var attributes = ['sensor', 'controller', 'actuator']
 
         //crear el logic si no existe
         e.logic || (e.logic = {});
-        
-        //convert<ir strings de controller en arreglos
+
+        //convertir strings de controller en arreglos
         parse && parseLogic(model);
 
         //extender sensor y actuator en el logic
@@ -192,21 +190,6 @@ var Atenea = function(){
     }
 
     /*
-      Convierte un string de palabras @words separadas por @sprt, en un arreglo
-      con las mismas palabras.
-
-      - words: string de palabras.
-      - srpt: separador de las palabras, la coma por defecto.
-    */
-
-    var StringToArray = function(words, sprt){
-
-        (sprt == null) && (sprt=',');
-
-        return words.replace(REXP_WORDS_SPACE, '').split(sprt);
-    }
-
-    /*
       Convierte, si lo son, strings de controller en @logic en arreglos.
 
       - logic: modelo a ser parseado.
@@ -216,14 +199,24 @@ var Atenea = function(){
         var controllers = logic.controller;
         var attributes = ['sensor', 'actuator'];
 
-        for (c in controllers){
+        for (var n in controllers){
+
+            var ctrl = controllers[n];
+
+            ctrl.operator = ctrl.operator.toUpperCase();
 
             for (var i=0; i<attributes.length; i++){
                 var attr = attributes[i];
 
-                (typeof(controllers[c][attr]) == 'string') &&
-                    (controllers[c][attr] = StringToArray(controllers[c][attr]));
-                
+                (typeof(ctrl[attr]) == 'string') &&
+                    (ctrl[attr] = Util.StringToArray(ctrl[attr]));
+            }
+        }
+
+        // parse each sensor
+        if ( logic.hasOwnProperty('sensor') ){
+            for (var name in logic.sensor){
+                logic.sensor[name] = keys.parseString(logic.sensor[name]);
             }
         }
     }
@@ -279,18 +272,135 @@ var Atenea = function(){
     */
     var draw = function(){
 
-        entities = activeScene.entities;
+        var entities = activeScene.entities;
+
+        canvas.context.fillStyle = 'white';
+        canvas.context.fillRect(0, 0, canvas.size().width, canvas.size().height)
 
         for (var i=0; i<entities.length; i++){
-            entities[i].draw(canvas.context);
+            entities[i].draw.apply(entities[i], [canvas.context]);
         }
+    }
+
+    /*
+    */
+    var processLogic = function(){
+
+        for(var i=0; i<activeScene.entities.length; i++){
+
+            var e = activeScene.entities[i];
+
+            var all_sensors = getSensorState(e.logic.sensor);
+
+            for (var name in e.logic.controller){
+
+                var c = e.logic.controller[name];
+                var sensors = []
+                var operator = c.operator;
+                var output = false;
+
+                // filtrar los sensores de este controlador
+                for (var n in c.sensor){
+                    sensors.push(all_sensors[c.sensor[n]]);
+                }
+
+                // determinar la salida del controlador segun el operador
+                if ( operator == 'AND'){
+                    output = sensors.indexOf(false) == -1;
+                }
+                else if(operator == 'OR'){
+                    output = sensors.indexOf(true) != -1;
+                }
+                else if(operator == 'NAND'){
+                    output = sensors.indexOf(true) == -1;
+                }
+                else if(operator == 'NOR'){
+                    output = sensors.indexOf(false) != -1;
+                }
+                else if (operator == 'XOR'){
+                    output = sensors.filter( function(v){return v;} ).length == 1;
+                }
+                else if(operator == 'XNOR'){
+                    output = sensors.filter( function(v){return !v;} ).length == 1;
+                }
+
+                if (output){
+
+                    for (var n in c.actuator){
+                        e.logic.actuator[c.actuator[n]].call(e);
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+      Analiza el estado de cada uno de los sensores en la entidad @e
+      y retorna un diccionario con dichos estados.
+
+      - e: entidad que contiene los sensores ha ser analizados.
+    */
+    var getSensorState = function(sensors){
+
+        var sensor_status = {};
+
+        key_sensor = getKeySensorState(sensors);
+
+        extend(sensor_status, key_sensor);
+
+        return sensor_status;
+    }
+
+    /*
+      Analiza los sensores en @sensors, asumiendo que son sensores de teclado.
+
+      - sensors: sensores de teclado ha ser analizados.
+    */
+    var getKeySensorState = function(sensors){
+
+        key_sensor_status = {};
+
+        for (var name in sensors){
+
+            var sensor = sensors[name];
+
+            if (sensor.length == 1){
+
+                key_sensor_status[name] = 
+                    ['DOWN', 'PRESSED'].indexOf(keys.key(sensor[0])) != -1;
+            
+            } else {
+
+                key_sensor_status[name] = true;
+                var state = ['DOWN', 'PRESSED'];
+                var limit = sensor.length;
+
+                if (typeof sensor[sensor.length-1] == 'string'){
+                    state = [sensor[sensor.length-1]];
+                    limit -= 1;
+                }
+
+                for (var s=0; s<limit; s++){
+                    key_status = keys.key(sensor[s])
+
+                    if(state.indexOf(key_status) == -1){
+                        key_sensor_status[name] = false;
+                        break;
+                    } 
+                }
+            }
+        }
+
+        return key_sensor_status;
     }
 
     /*
       Actualiza el estado de las entidades en la escena actual.
     */
     var update = function(){
-        //console.log('update');
+        
+        keys.update();
+        processLogic();
     }
 
     /*
