@@ -5,8 +5,9 @@ var Atenea = function(){
       Constantes relacionadas a expresiones regulares.
     */
 
-    REXP_MODEL_ENTITY = /^[A-Z].*$/;
+    REXP_MODEL_ENTITY = /^[A-Z][a-z]+([A-Z][a-z]+)*/;
     REXP_MODEL_SCENE = /^[a-z]+$/;
+    REXP_MODEL_LOGIC = /^[A-Z]+$/;
     REXP_WORDS_SPACE = /\s+/g;
 
     /*
@@ -24,13 +25,13 @@ var Atenea = function(){
 
     /*
       Diccionario con todas las escenas que allan sido registradas
-      con el llamado a Atenea.scene.    
+      con el llamado a #scene.    
     */
     var scenes = {};
     
     /*
       Diccionario con todos los modelos registrados con el llamado
-      Atenea.register.
+      #register.
     */
     var models = {};
 
@@ -39,6 +40,11 @@ var Atenea = function(){
       del teclado.
     */
     var keys = new KeyEventManager();
+    /*
+      Diccionario con todos los logics regitrados con el llamado  a 
+      #register
+    */
+    var logics = {};
 
     /**
       Inicializa las variables necesarias para el correcto
@@ -77,19 +83,22 @@ var Atenea = function(){
     */
     self.register = function(id, model){
 
+        var newModel = {}
+        extend(newModel, model);
+
         if(id.match(REXP_MODEL_ENTITY)){
 
-            var newModel = {}
-
-            extend(newModel, model);
-
             newModel.logic && parseLogic(newModel.logic);
-
             models[id] = newModel;
         }
         else if(id.match(REXP_MODEL_SCENE)){
 
-            scenes[id] = model;
+            scenes[id] = newModel;
+        }
+        else if(id.match(REXP_MODEL_LOGIC)){s
+
+            parseLogic(newModel);
+            logics[id] = newModel;
         }
     }
 
@@ -111,7 +120,13 @@ var Atenea = function(){
         var models = Util.StringToArray(type);
 
         for (n in models){
-            add(e, models[n]);
+
+            if (models[n].match(REXP_MODEL_ENTITY)){
+                add(e, models[n]);
+            }
+            else if(models[n].match(REXP_MODEL_LOGIC)){
+                self.logic(e, logics[models[n]], false);
+            }
         }
 
         return e;

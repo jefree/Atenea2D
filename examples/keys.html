@@ -24,9 +24,7 @@
 		}
 	});
 
-	my_point = Atenea.parse('Point');
-
-	Atenea.logic(my_point, {
+	Atenea.register('MOVE', {
 
 		sensor: {
 			right: 'right',
@@ -68,6 +66,8 @@
 			},
 		}
 	});
+
+	my_point = Atenea.parse('Point, MOVE');
 
 	Atenea.register('main', {
 		entities: [my_point]
