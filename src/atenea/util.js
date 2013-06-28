@@ -13,4 +13,4 @@ var Util = {
 
         return words.replace(REXP_WORDS_SPACE, '').split(sprt);
     }
-}
+};

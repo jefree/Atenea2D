@@ -10,7 +10,7 @@ var KeyEventManager = function(){
         d: 'DOWN', down: 'DOWN',
         p: 'PRESSED', press: 'PRESSED',
         r: 'RELEASED', release: 'RELEASED'
-    }
+    };
 
     /*
       Diccionario con teclas que no poseen un codigo ascii valido.
@@ -50,7 +50,7 @@ var KeyEventManager = function(){
         
         var key = evt.keyCode;
         events.push([key, 0]);  
-    }
+    };
 
     /*
       Actualiza el estado de la teclas que se solto.
@@ -59,7 +59,7 @@ var KeyEventManager = function(){
 
         var key = evt.keyCode;
         events.push([key, 1]);
-    }
+    };
 
     /*
       actualiza el estado de las teclas en base a los eventos ocurridos.
@@ -73,7 +73,7 @@ var KeyEventManager = function(){
 
         for (var i=0; i<copy.length; i++){
 
-            key = copy[i][0]
+            key = copy[i][0];
             evt = copy[i][1];
 
             if (keys[key] === undefined){
@@ -101,7 +101,7 @@ var KeyEventManager = function(){
                     case 'DOWN':
                     case 'PRESSED':
                         keys[key] = 'RELEASED';
-                        events.push([key, 1])
+                        events.push([key, 1]);
                         break;
 
                     case 'RELEASED':
@@ -110,7 +110,7 @@ var KeyEventManager = function(){
                 }
             }
         }
-    }
+    };
 
     self.parseString = function(string){
 
@@ -136,7 +136,7 @@ var KeyEventManager = function(){
             }
         }
         else if(string.indexOf('-') != -1){
-            result = Util.StringToArray(string, '-')
+            result = Util.StringToArray(string, '-');
 
             result.push( keyCode(result[0]) );
             result.push( EVENT_MAP[result[1]] ); 
@@ -146,7 +146,7 @@ var KeyEventManager = function(){
         }
 
         return result;
-    }
+    };
 
     /*
       Retorna el keyCode de la tecla especificada por @key.
@@ -154,7 +154,7 @@ var KeyEventManager = function(){
     var keyCode = function(key){
         //return 65;
         return SPECIAL_MAP[key] || key.toUpperCase().charCodeAt(0);    
-    }
+    };
 
     /**
       Retorna el estado de la tecla solicitada.
@@ -164,11 +164,11 @@ var KeyEventManager = function(){
         typeof(key)=='string' && ( key=keyCode(key) );
 
         return keys[key];
-    }
+    };
 
     /*
       Registar los EventListener para monitorear el estado de las teclas.
     */
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
-}
+};

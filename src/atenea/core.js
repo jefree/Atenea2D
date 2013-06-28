@@ -69,7 +69,7 @@ var Atenea = function(){
                         window.setTimeout(callback, 1000 / 60);
                     };
         })();
-    }
+    };
 
     /**
       Registar un modelo para que este pueda ser usado posteriormente en
@@ -83,24 +83,24 @@ var Atenea = function(){
     */
     self.register = function(id, model){
 
-        var newModel = {}
+        var newModel = {};
         extend(newModel, model);
 
         if(id.match(REXP_MODEL_ENTITY)){
 
-            newModel.logic && parseLogic(newModel.logic);
+            newModel.logic && parseLogic(newModelspar.logic);
             models[id] = newModel;
         }
         else if(id.match(REXP_MODEL_SCENE)){
 
             scenes[id] = newModel;
         }
-        else if(id.match(REXP_MODEL_LOGIC)){s
+        else if(id.match(REXP_MODEL_LOGIC)){
 
             parseLogic(newModel);
             logics[id] = newModel;
         }
-    }
+    };
 
     /**
       Crea un objeto concreto que tendra las caracteristicas de los
@@ -130,7 +130,7 @@ var Atenea = function(){
         }
 
         return e;
-    }
+    };
 
     /**
       Cambia la escena actual por la indicada en @id.
@@ -141,7 +141,7 @@ var Atenea = function(){
     */
     self.scene = function(id, scene){
         activeScene = scenes[id];
-    }
+    };
 
     /**
       Lanza el loop principal de la aplicacion, usando la escena con el id
@@ -155,7 +155,7 @@ var Atenea = function(){
         activeScene = scenes[id];
         
         animLoop();
-    }
+    };
 
     /*
       Extiende el LogicBlock de una entidad, con el modelo de LogicBlock
@@ -170,7 +170,7 @@ var Atenea = function(){
 
         (parse === undefined) && (parse=true);
 
-        var attributes = ['sensor', 'controller', 'actuator']
+        var attributes = ['sensor', 'controller', 'actuator'];
 
         //crear el logic si no existe
         e.logic || (e.logic = {});
@@ -187,7 +187,7 @@ var Atenea = function(){
 
             extend(e.logic[attr], model[attr]);
         }
-    }
+    };
 
     /*
       Convierte, si lo son, strings de controller en @logic en arreglos.
@@ -219,7 +219,7 @@ var Atenea = function(){
                 logic.sensor[name] = keys.parseString(logic.sensor[name]);
             }
         }
-    }
+    };
 
     /*
       Extiende las caracteristicas del objeto @dst con las del objeto
@@ -243,7 +243,7 @@ var Atenea = function(){
                 }
             }
         }
-    }
+    };
 
     /*
       Extiende una entidad @e con las caractetisticas del model @model, y lo
@@ -265,7 +265,7 @@ var Atenea = function(){
             model_data.init && model_data.init.call(e);
             
         }
-    }
+    };
 
     /*
       Dibuja todos las entidades dentro de la escena activa.
@@ -275,12 +275,12 @@ var Atenea = function(){
         var entities = activeScene.entities;
 
         canvas.context.fillStyle = 'white';
-        canvas.context.fillRect(0, 0, canvas.size().width, canvas.size().height)
+        canvas.context.fillRect(0, 0, canvas.size().width, canvas.size().height);
 
         for (var i=0; i<entities.length; i++){
             entities[i].draw.apply(entities[i], [canvas.context]);
         }
-    }
+    };
 
     /*
     */
@@ -295,7 +295,7 @@ var Atenea = function(){
             for (var name in e.logic.controller){
 
                 var c = e.logic.controller[name];
-                var sensors = []
+                var sensors = [];
                 var operator = c.operator;
                 var output = false;
 
@@ -332,7 +332,7 @@ var Atenea = function(){
                 }
             }
         }
-    }
+    };
 
     /*
       Analiza el estado de cada uno de los sensores en la entidad @e
@@ -349,7 +349,7 @@ var Atenea = function(){
         extend(sensor_status, key_sensor);
 
         return sensor_status;
-    }
+    };
 
     /*
       Analiza los sensores en @sensors, asumiendo que son sensores de teclado.
@@ -381,7 +381,7 @@ var Atenea = function(){
                 }
 
                 for (var s=0; s<limit; s++){
-                    key_status = keys.key(sensor[s])
+                    key_status = keys.key(sensor[s]);
 
                     if(state.indexOf(key_status) == -1){
                         key_sensor_status[name] = false;
@@ -392,7 +392,7 @@ var Atenea = function(){
         }
 
         return key_sensor_status;
-    }
+    };
 
     /*
       Actualiza el estado de las entidades en la escena actual.
@@ -401,7 +401,7 @@ var Atenea = function(){
         
         keys.update();
         processLogic();
-    }
+    };
 
     /*
       Bucle principal de la aplicacion.
@@ -411,7 +411,7 @@ var Atenea = function(){
         requestAnimFrame(animLoop);
         update();
         draw();
-    }
+    };
 
     /*
       Objetos canvas interno, que maneja todo relacionado a el tag canvas
@@ -447,7 +447,7 @@ var Atenea = function(){
             }else{
                 document.body.appendChild(self.domElement);
             }
-        }
+        };
 
         /*
           Asigna o retorna el tamaño del canvas segun el numero parametros
@@ -472,11 +472,6 @@ var Atenea = function(){
                     height:self.domElement.height
                 };
             }
-        }
+        };
     })();
-}
-
-/*
-  Crear la referencia global a el objeto principal del framework.
-*/
-window.Atenea = new Atenea();
+};
