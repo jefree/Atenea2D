@@ -50,20 +50,7 @@
 		j : 3
 	}
 
-	//register models
-
-	Atenea.register('Point', Point);
-	Atenea.register('Coord', Coord);
-
-	//expand object
-	p1 = Atenea.parse('Point');
-
-	//make objects from models
-	p2 = Atenea.parse('Coord');
-	Atenea.parse('Point', p2);
-
-	//extend logic
-	Atenea.logic(p1,{
+	LOGIC = {
 
 		sensor:{down:'down'},
 		controller:{
@@ -75,9 +62,20 @@
 			}
 		},
 		actuator:{hide:'Hide!'}
-	})
+	}
 
-	console.log(p1.logic.controller);
+	//register models
+
+	Atenea.register('Point', Point);
+	Atenea.register('Coord', Coord);
+	Atenea.register('LOGIC', LOGIC);
+
+	//expand object
+	p1 = Atenea.parse('Point, LOGIC');
+
+	//make objects from models
+	p2 = Atenea.parse('Coord');
+	Atenea.parse('Point', p2);
 
 	p2.x = 100;
 	p2.y = 200;
